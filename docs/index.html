@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FirstUseCase Calculator</title>
+  <style>
+    :root {
+      --bg-1: #f7f4ef;
+      --bg-2: #e7ded0;
+      --card: #fffdf8;
+      --text: #222016;
+      --muted: #5f5a4a;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --ok: #166534;
+      --err: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, #fff 0%, transparent 35%),
+        radial-gradient(circle at 90% 20%, #f7e9d2 0%, transparent 30%),
+        linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: min(760px, 100%);
+      background: var(--card);
+      border: 1px solid #e6dfd1;
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 24px;
+      background: linear-gradient(120deg, #fff, #f6f0e4);
+      border-bottom: 1px solid #ece5d8;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .body {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d8cfbd;
+      border-radius: 10px;
+      font-size: 1rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      background: var(--accent-2);
+    }
+
+    .result {
+      border: 1px solid #dfd5c1;
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      min-height: 80px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.err {
+      color: var(--err);
+    }
+
+    @media (max-width: 720px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .body,
+      .header {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <section class="header">
+      <h1>FirstUseCase API Tester</h1>
+      <p class="sub">This page runs on GitHub Pages. Enter your deployed Function App URL to call the sum and multiply endpoints.</p>
+    </section>
+
+    <section class="body">
+      <div>
+        <label for="baseUrl">Function app base URL</label>
+        <input id="baseUrl" type="url" placeholder="https://your-app.azurewebsites.net" />
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="num1">First number</label>
+          <input id="num1" type="number" step="any" value="10" />
+        </div>
+        <div>
+          <label for="num2">Second number</label>
+          <input id="num2" type="number" step="any" value="20" />
+        </div>
+      </div>
+
+      <div>
+        <label for="operation">Operation</label>
+        <select id="operation">
+          <option value="sum">sum</option>
+          <option value="multiply">multiply</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button id="runBtn" type="button">Call API</button>
+        <button id="sampleBtn" type="button" class="secondary">Use local sample URL</button>
+      </div>
+
+      <div id="status" class="status">Ready.</div>
+      <pre id="result" class="result">Response will appear here.</pre>
+    </section>
+  </main>
+
+  <script>
+    const baseUrlInput = document.getElementById("baseUrl");
+    const num1Input = document.getElementById("num1");
+    const num2Input = document.getElementById("num2");
+    const operationInput = document.getElementById("operation");
+    const runBtn = document.getElementById("runBtn");
+    const sampleBtn = document.getElementById("sampleBtn");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+
+    function setStatus(message, cls) {
+      status.textContent = message;
+      status.className = "status" + (cls ? " " + cls : "");
+    }
+
+    async function callApi() {
+      const baseUrl = baseUrlInput.value.trim().replace(/\/+$/, "");
+      const num1 = num1Input.value;
+      const num2 = num2Input.value;
+      const operation = operationInput.value;
+
+      if (!baseUrl) {
+        setStatus("Enter a Function app base URL first.", "err");
+        return;
+      }
+
+      const url = baseUrl + "/api/" + operation + "?num1=" + encodeURIComponent(num1) + "&num2=" + encodeURIComponent(num2);
+      setStatus("Calling " + url, "");
+      result.textContent = "Loading...";
+
+      try {
+        const response = await fetch(url, { method: "GET" });
+        const text = await response.text();
+        let payload = text;
+
+        try {
+          payload = JSON.stringify(JSON.parse(text), null, 2);
+        } catch (_) {
+        }
+
+        if (response.ok) {
+          setStatus("Success: " + response.status, "ok");
+        } else {
+          setStatus("Request failed: " + response.status, "err");
+        }
+
+        result.textContent = payload;
+      } catch (error) {
+        setStatus("Network or CORS error.", "err");
+        result.textContent = String(error);
+      }
+    }
+
+    runBtn.addEventListener("click", callApi);
+    sampleBtn.addEventListener("click", () => {
+      baseUrlInput.value = "http://localhost:7071";
+      setStatus("Set sample local URL. Start Functions host locally or replace with your Azure URL.", "");
+    });
+  </script>
+</body>
+</html>
