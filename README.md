@@ -1,6 +1,6 @@
-# Azure Function - Sum Calculator (TypeScript)
+# Azure Function - Calculator (TypeScript)
 
-An Azure Function that exposes an HTTP endpoint to calculate the sum of two numbers.
+An Azure Function that exposes an HTTP endpoint to calculate the sum or multiplication of two numbers.
 
 ## Overview
 
